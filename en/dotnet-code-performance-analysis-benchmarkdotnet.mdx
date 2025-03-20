@@ -1,0 +1,420 @@
+---
+title: "A Comprehensive Guide to Code Performance Analysis in .NET using BenchmarkDotNet"
+publishedAt: "2025-03-20"
+image: "https://raw.githubusercontent.com/SaifSaidi/my-blog/refs/heads/main/res/images/BenchmarkDotNet.png"
+summary: "Learn how to use BenchmarkDotNet in .NET to accurately analyze your code's performance, understand important metrics to make informed decisions, and optimize your applications."
+about: "In this article, we will delve into how to analyze code performance in .NET applications using the powerful BenchmarkDotNet library. We will explore the importance of performance analysis, why BenchmarkDotNet is an excellent tool for this purpose. We will delve into statistical analysis, comparing different methods, and understanding execution time. Additionally, we will explain how to use BenchmarkDotNet step by step with practical examples, review the library's available attributes, and provide tips for getting the most out of the performance analysis process."
+tags:
+    - "Dotnet"
+    - "C#"
+    - "BenchmarkDotNet"
+    - "Performance"
+github: "https://github.com/SaifSaidi/my-blog/blob/main/en/dotnet-code-performance-analysis-benchmarkdotnet.mdx"
+---
+
+## 1. Performance Analysis using BenchmarkDotNet in .NET
+
+When you analyze your code's performance correctly, it helps you make good decisions about how to write your program, whether it's running fast, or if there are better ways to write the code. If you have two versions of the same code, you can determine which one is faster and which one consumes fewer resources.
+
+## 2. Why is Performance Analysis Important for Your Project?
+
+* 1. **Early Problem Detection:** When you analyze performance regularly, you can find issues that might slow down the program before they reach users. This saves time and effort in fixing them later.
+* 2. **Improving User Experience:** A fast program means a happy user. Performance analysis helps you ensure your application runs smoothly and doesn't freeze.
+* 3. **Saving Costs:** If your program consumes a lot of resources, you might need more powerful servers or pay more for cloud services. Performance analysis helps you optimize resource usage and save money.
+* 4. **Comparing Solutions:** When you have more than one way to do the same thing in the code, performance analysis helps you know which way is faster and more efficient.
+
+## 3. Why Use BenchmarkDotNet?
+
+* Its setup and usage are very easy.
+* It gives you statistical analysis to ensure the results are reliable and not just random.
+* It provides statistics on how memory is allocated and the work of the Garbage Collector (which cleans up memory).
+* It generates easy-to-read reports in multiple formats.
+* It supports different versions of .NET Core.
+
+## 4. Statistical Analysis
+
+This type of analysis helps you understand how consistent and accurate the test results are.
+
+```note
+📌 There might be some natural variations in performance due to factors like the operating environment or the hardware used.
+```
+
+* **Mean:** This is the average time taken by the different operations.
+    * It gives you an idea of the overall performance.
+
+    ```
+    Mean = (Sum of all test values) / (Number of tests)
+    ```
+* **Standard Deviation:** A measure that shows how far the results are from the mean.
+    * It helps you understand how variable the results are.
+* **Min (Minimum):** The shortest time measured in the tests.
+* **Max (Maximum):** The longest time measured in the tests.
+* **Median:** This is the value that comes in the middle when you sort the test results from the lowest to the highest. It can be more accurate than the mean when there are many outliers (values that are very far from the others).
+
+### Importance of Statistical Analysis in Performance Testing:
+
+* **Analyzing Performance Stability:** Statistical analysis gives us an idea of how stable the results are across a set of tests. It can reveal if there is a variance in performance due to different things like system load or memory usage.
+
+* **Detecting Outliers:** Strange values might appear due to specific situations like hardware problems or code errors. Statistical analysis helps us find these values and separate them from the normal results.
+
+* **Making Informed Decisions:** When you understand the test results statistically, you can make better decisions about improving the code or making the necessary changes to improve performance. For example, if there is a large variance in the results, you can look for the cause and see if you need to improve the algorithm or the system.
+
+* **Comparing Different Solutions:** When you compare more than one way to solve the same problem, statistical analysis gives you the information you need to know which method is more efficient. This helps you make decisions based on numbers, not just guesses.
+
+## 5. Comparative Analysis
+
+This type of analysis relies on comparing different methods. Comparisons give you a clear view of which method performs better in terms of execution speed, memory usage, or any other important criteria. For example: you can compare between two algorithms to solve the same problem.
+
+## 6. Execution Time
+
+This is the time it takes for the system to finish executing an operation or a set of operations.
+
+**Performance Measurement Criteria:**
+
+* **ns (Nanosecond):** A nanosecond is a very small fraction of a second. One nanosecond is equal to 1 billionth of a second (i.e., 10^-9 of a second).
+    * 100 nanoseconds = 0.0000001 seconds
+    * We use it for operations that happen inside processors or operations at the hardware level.
+
+* **ms (Millisecond):** A millisecond is 1 thousandth of a second (i.e., 10^-3 of a second).
+    * 50 milliseconds = 0.05 seconds
+    * We use it to measure network response or the performance of web applications and real-time systems.
+
+## 7. How to Use BenchmarkDotNet?
+
+### Step One: Preparing the Project
+
+[Source code for the example on GitHub](https://github.com/SaifSaidi/StringConcatenationBenchmarkDotNet)
+
+Create a new project:
+
+<div dir="ltr">
+
+```
+dotnet new console -n StringConcatenationBenchmarkDotNet
+cd StringConcatenationBenchmarkDotNet
+```
+</div>
+
+Add the BenchmarkDotNet package:
+
+[BenchmarkDotNet on GitHub](https://github.com/dotnet/BenchmarkDotNet)
+
+<div dir="ltr">
+
+```
+dotnet add package BenchmarkDotNet
+```
+
+</div>
+
+### Step Two: First Performance Test
+
+Let's try concatenating a first name with a last name in different ways:
+
+<div dir="ltr">
+
+```csharp
+using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Running;
+using System.Text;
+
+namespace StringConcatenationBenchmarkDotNet
+{
+    public class StringConcatBenchmarks
+    {
+        // This is the test data
+        private readonly string firstName = "Saif";
+        private readonly string lastName = "Saidi";
+
+        // Using the "+" operator to concatenate strings
+        [Benchmark]
+        public string UsingPlusOperator_Benchmark()
+        {
+            return "Hello, " + firstName + " " + lastName + "!";
+        }
+
+        // Using String Interpolation to concatenate strings
+        [Benchmark]
+        public string UsingStringInterpolation_Benchmark()
+        {
+            return $"Hello, {firstName} {lastName}!";
+        }
+
+        // Using String.Concat to concatenate strings
+        [Benchmark]
+        public string UsingStringConcat_Benchmark()
+        {
+            return string.Concat("Hello, ", firstName, " ", lastName, "!");
+        }
+
+        // Using StringBuilder to concatenate strings
+        [Benchmark]
+        public string UsingStringBuilder_Benchmark()
+        {
+            var sb = new StringBuilder();
+            sb.Append("Hello, ");
+            sb.Append(firstName);
+            sb.Append(" ");
+            sb.Append(lastName);
+            sb.Append("!");
+            return sb.ToString();
+        }
+
+        // Using String.Format to concatenate strings
+        [Benchmark]
+        public string UsingStringFormat_Benchmark()
+        {
+            return string.Format("Hello, {0} {1}!", firstName, lastName);
+        }
+    }
+}
+```
+</div>
+
+### Step Three: Running the Test using BenchmarkRunner
+
+📌 **Note:** Always run performance tests in "Release" mode to get accurate results.
+
+<div dir="ltr">
+
+```csharp
+public static void Main(stringargs)
+{
+  BenchmarkRunner.Run<StringConcatBenchmarks>();
+}
+```
+</div>
+
+<div dir="ltr">
+
+```bash
+dotnet run -c Release
+# Or activate the Release option in Visual Studio and run the project
+```
+</div>
+
+### Step Four: Understanding the Results and Reports
+
+
+
+<div dir="ltr">
+
+```
+BenchmarkDotNet v0.13.12, OS Windows 10.0.19045.3930 (22H2/November2022Update)
+Intel Core i7-8665U CPU 1.90GHz (Coffee Lake), 1 CPU, 8 logical and 4 physical cores
+.NET SDK 9.0.104
+
+| Method                               | Mean      | Error     | StdDev    | Median    |
+|--------------------------------------|----------:|----------:|----------:|----------:|
+| UsingPlusOperator_Benchmark          | 42.79 ns  | 1.140 ns  | 3.324 ns  | 41.98 ns  |
+| UsingStringInterpolation_Benchmark | 39.73 ns  | 0.996 ns  | 2.937 ns  | 39.19 ns  |
+| UsingStringConcat_Benchmark          | 32.25 ns  | 0.206 ns  | 0.182 ns  | 32.19 ns  |
+| UsingStringBuilder_Benchmark         | 65.86 ns  | 2.461 ns  | 7.022 ns  | 63.93 ns  |
+| UsingStringFormat_Benchmark          | 66.32 ns  | 1.417 ns  | 3.807 ns  | 64.61 ns  |
+```
+
+</div>
+
+**Key Metrics Explained:**
+
+* **Method:** This column shows the name of the method whose performance we tested.
+* **Mean:** This is the arithmetic average of the time it took for the operation to execute in the test, measured in the unit of time we specify (here, nanoseconds ns).
+* **Error:** This is the statistical error (or margin of error) that reflects the variability in the results. It shows how much the results might differ from one run to another.
+    * **Note:** The lower the error, the more stable and accurate the results are.
+* **StdDev (Standard Deviation):** The amount of variation between the results: lower standard deviation values indicate that the time was consistent across all tests.
+* **Median:** This is the value that comes in the middle when we sort the test results from the lowest to the highest.
+
+#### General Explanation of the Results:
+
+* The best method in terms of performance is `UsingStringConcat_Benchmark`, as it took the least time (32.25 nanoseconds) and had the lowest standard deviation (0.182 nanoseconds), meaning it is also the most stable.
+* The worst methods in terms of performance are `UsingStringBuilder_Benchmark` and `UsingStringFormat_Benchmark`, as they took about 65.86 and 66.32 nanoseconds respectively, and they are among the methods that took the most time compared to the others.
+
+## 8. BenchmarkDotNet Attributes
+
+* 1. `[Benchmark]`: Used to specify the functions whose performance will be tested.
+* 2. `[MemoryDiagnoser]`: When this attribute is added, BenchmarkDotNet starts tracking how memory is allocated during the tests and displays a report on memory usage.
+* 3. `[Params]`: Used to specify different values for the inputs, to test the same function multiple times with different inputs.
+
+<div dir="ltr">
+
+    ```csharp
+    public class MyBenchmark
+    {
+        [Params(10, 100, 1000)] // Different values to try
+        public int Size;
+
+        [Benchmark]
+        public void MyTestMethod()
+        {
+            var list = new List<int>(Size);
+            // Execution of the test with the list size
+        }
+    }
+    ```
+</div>
+
+* 4. `[Setup]`, `[GlobalSetup]`, `[Cleanup]`:
+    * 4.1. `[Setup]`: Executed before each benchmark, meaning if there are many benchmarks in the class, this will be executed many times.
+    * 4.2. `[GlobalSetup]`: Executed once before all benchmarks in the class. We mainly use it when we need to do a general setup only once.
+    * 4.3. `[Cleanup]`: Used to clean up data or release resources after all benchmarks are finished. It can be used to perform a shutdown after the benchmarks are executed.
+
+<div dir="ltr">
+
+    ```csharp
+    public class MyBenchmark
+    {
+        [Setup]
+        public void Setup()
+        {
+            // Preparing the data or environment for the benchmarks
+        }
+
+        [Benchmark]
+        public void MyTestMethod()
+        {
+            // The benchmark is here
+        }
+    }
+    ```
+</div>
+
+## 9. Reducing Execution Time using ShortRunJob
+
+ShortRunJob is a fast option in BenchmarkDotNet to reduce the time spent on performance tests. This allows for quick results for small or fast-executing code, but the accuracy of the statistics is lower.
+
+### `Job.Default`
+
+This is the default setting in BenchmarkDotNet, where tests are run with accuracy, a large number of iterations, and the time needed to obtain statistically accurate results.
+
+### `ShortRunJob`
+
+It works by reducing the duration of test execution and the number of iterations, and it is preferred when quick results are needed from small code tests or for rapid experiments.
+
+<div dir="ltr">
+
+```csharp
+[ShortRunJob] // Add this property
+public class ShortJobsBenchmarks
+{
+}
+```
+
+
+</div>
+
+### When Should We Not Use ShortRunJob?
+
+* **Complex Tests:** If you are testing complex algorithms or code that needs time to stabilize before measuring performance, you should avoid using ShortRunJob.
+* **Tests Requiring High Accuracy:** If the test needs high statistical accuracy and consistent results over time, you should use the default setting instead of ShortRunJob.
+
+## 10. Customizing and Setting Up BenchmarkDotNet Manually
+
+In BenchmarkDotNet, we use `ManualConfig` to make custom settings and fully control how the tests are executed. Usually, when you use BenchmarkDotNet, the tests are executed using the default settings, but `ManualConfig` allows you to customize a range of options such as job settings, adding extra attributes, customizing report settings, and many other options.
+
+### Features
+
+1.  Setting a custom Job (like ShortRunJob or LongRunJob).
+2.  Aggregating and exporting reports.
+3.  Controlling warmup and iteration settings.
+4.  Adding extra attributes like Exporters and Analyzers.
+
+### ManualConfig Object
+
+<div dir="ltr">
+
+```csharp
+using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Loggers;
+using BenchmarkDotNet.Running;
+
+// ... other code
+
+    // Setting up ManualConfig
+    var config = new ManualConfig()
+        .AddLogger(ConsoleLogger.Default); // Adding a logger to see the progress in the Console
+
+    // Running the benchmarks using the custom configuration
+    BenchmarkRunner.Run<StringConcatBenchmarks>(config);
+```
+</div>
+
+### Setting Up the Logger
+
+`AddLogger(ConsoleLogger.Default);` You can use any logger to see what's happening.
+
+<div dir="ltr">
+
+```csharp
+using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Loggers;
+using BenchmarkDotNet.Running;
+
+// ... other code
+
+    var config = new ManualConfig()
+        .AddLogger(ConsoleLogger.Default);
+
+    // Running the benchmarks using the custom configuration
+    BenchmarkRunner.Run<StringConcatBenchmarks>(config);
+```
+</div>
+
+### Warmup and Iteration Settings
+
+* `Job.ShortRun`: ShortRunJob is used to reduce the execution time of the benchmarks.
+* `Job.LongRun`: LongRun is used to increase the execution time of the benchmarks.
+* `AddJob(Job.Default.WithWarmupCount(5).WithIterationCount(10))`: You can specify the number of warmup counts and the number of iteration counts for the benchmark.
+
+<div dir="ltr">
+
+```csharp
+using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Loggers;
+using BenchmarkDotNet.Running;
+using BenchmarkDotNet.Jobs;
+
+// ... other code
+
+    var config = new ManualConfig()
+        .AddLogger(ConsoleLogger.Default)
+        .AddJob(Job.ShortRun)
+        .AddJob(Job.Default.WithWarmupCount(5).WithIterationCount(10));
+
+    // Running the benchmarks using the custom configuration
+    BenchmarkRunner.Run<StringConcatBenchmarks>(config);
+```
+</div>
+
+### Column Settings
+
+You can customize the columns displayed in the benchmark results table using the ManualConfig.
+For example, to show the Minimum and Maximum execution times, you can use the following code:
+
+```csharp
+using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Loggers;
+using BenchmarkDotNet.Running;
+using BenchmarkDotNet.Columns; // Make sure this namespace is included
+using BenchmarkDotNet.Jobs;
+
+// ... other code
+
+    var config = new ManualConfig()
+        .AddLogger(ConsoleLogger.Default)
+        .AddJob(Job.ShortRun)
+        .AddJob(Job.Default.WithWarmupCount(5).WithIterationCount(10))
+        .AddColumn(StatisticColumn.Min)   // To show the Minimum
+        .AddColumn(StatisticColumn.Max);   // To show the Maximum
+            .AddColumnProvider(DefaultColumnProviders.Instance);// Defaults Columns 
+
+    // Running the benchmarks using the custom configuration
+    BenchmarkRunner.Run<StringConcatBenchmarks>(config);
+```
+
+
+## 11. Tips for Effective Performance Analysis:
+
+* **Test Code in Release Mode:** Always run performance tests in "Release" mode to get accurate results, because in this mode the performance is optimized.
+* **Use Realistic Data:** Test your code using real data or at least data that is similar to actual usage.
+* **Run Tests Multiple Times:** Test the code more than once to get stable results, because sometimes there might be performance fluctuations.
+* **Compare Results:** Use comparisons between different methods to know which method performs better.
