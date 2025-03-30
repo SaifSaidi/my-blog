@@ -1,0 +1,215 @@
+---
+title: "Supercharge Your Blazor App: Effortless Image Optimization with BlazorImage"
+publishedAt: "2025-03-30"
+image: "https://raw.githubusercontent.com/SaifSaidi/my-blog/refs/heads/main/res/images/BlazorImage.png"
+summary: "Discover BlazorImage, a powerful and intuitive image optimization library designed specifically for Blazor applications. Learn how to effortlessly optimize your images with features like automatic optimization, multiple format support (WebP, AVIF), lazy loading, and responsive image handling to boost your Blazor app's performance."
+about: "In this article, we will delve into how to optimize images in Blazor applications effortlessly using the BlazorImage library. We will explore the importance of image optimization for Blazor apps and introduce BlazorImage as a powerful solution. We will cover its key features, including automatic optimization, support for multiple formats like WebP and AVIF, built-in lazy loading, and responsive image handling. Additionally, we will explain how to install and set up BlazorImage in your Blazor project, configure its services, and demonstrate its usage with practical examples of the `Image` and `Picture` components. Finally, we will highlight the benefits of using BlazorImage to improve your Blazor application's performance and user experience."
+tags:
+    - "Blazor"
+    - "Image Optimization"
+    - "BlazorImage"
+    - "WebP"
+    - "AVIF"
+    - "Lazy Loading"
+    - "Responsive Images"
+github: "https://github.com/SaifSaidi/my-blog/blob/main/en/blazor-image-optimization.mdx"
+---
+
+## Supercharge Your Blazor App: Effortless Image Optimization with BlazorImage
+
+In today's web development landscape, optimizing images is crucial for delivering fast and engaging user experiences. Large, unoptimized images can significantly slow down your Blazor applications, leading to frustrated users and poor SEO rankings. But what if you could automate this process seamlessly within your Blazor projects?
+
+Enter **BlazorImage**, a powerful and intuitive image optimization library designed specifically for Blazor applications. Whether you're building static websites or interactive server-side applications, BlazorImage provides a comprehensive suite of features to ensure your images are always lean, mean, and lightning-fast.
+
+### The Challenge of Image Optimization in Blazor
+
+Manually optimizing images can be a tedious and time-consuming task. Developers often need to juggle multiple tools and techniques to resize, compress, and convert images to the most efficient formats. This process can become even more complex when dealing with responsive designs and the need to serve different image sizes for various devices.
+
+### Introducing BlazorImage: Your Blazor Image Optimization Ally
+
+BlazorImage simplifies this entire workflow by providing a developer-friendly way to automatically optimize images directly within your Blazor application. This library handles the heavy lifting, allowing you to focus on building amazing user interfaces without worrying about the intricacies of image optimization.
+
+### Key Features That Make BlazorImage Shine
+
+BlazorImage comes packed with features designed to optimize your images for peak performance:
+
+* **🚀 Automatic Image Optimization:** Say goodbye to manual optimization! BlazorImage automatically processes your images based on your configured settings.
+* **🖼️ Multiple Format Support:** Embrace modern image formats like WebP and AVIF for superior compression and quality, alongside traditional formats like JPEG and PNG.
+* **🔄 Built-in Lazy Loading:** Improve initial page load times by deferring the loading of off-screen images until they are about to become visible.
+* **📱 Responsive Images with Art Direction:** Deliver the right image size and crop for different screen sizes and contexts, ensuring optimal viewing experiences across all devices.
+* **⚡ Static and Interactive Rendering Support:** Whether you're using Blazor Server or Blazor WebAssembly, BlazorImage has you covered.
+* **🛠️ Developer Mode:** Easily debug and inspect how your images are being processed during development.
+* **🎨 Customizable Image Quality:** Fine-tune the compression level to balance image quality and file size.
+* **📏 Image Dimensions Control:** Specify exact or maximum dimensions for your images.
+* **🖌️ Custom CSS Classes and Styles:** Easily integrate optimized images into your existing styling with custom CSS classes and inline styles.
+* **📦 Lightweight and Easy to Use:** BlazorImage is designed to be lightweight and integrate seamlessly into your Blazor project.
+* **📊 Progress Tracking (for Image Processing):** Stay informed about the image processing status.
+
+### Getting Started with BlazorImage
+
+Ready to unlock the power of BlazorImage in your Blazor application? Here's a step-by-step guide:
+
+#### Prerequisites
+
+Make sure you have **.NET 9.0** or a higher version installed. You can download it from the official [.NET website](https://dotnet.microsoft.com/en-us/download).
+
+#### Installation
+
+Install the BlazorImage NuGet package by adding the following line to your project's `.csproj` file within the `<ItemGroup>` tag:
+
+```xml
+<PackageReference Include="BlazorImage" Version="1.0.1" />
+```
+
+Then, add the BlazorImage namespace to your `_Imports.razor` file:
+
+```csharp
+@using BlazorImage
+```
+
+#### Setup Services
+
+Open your `Program.cs` file and register the BlazorImage services within the `ConfigureServices` method:
+
+```csharp
+builder.Services.AddBlazorImage();
+```
+
+##### Optional Endpoints (Development Stage)
+
+During development, you can enable endpoints to manage the image cache. Add the following to your `Program.cs` file within the `Configure` method:
+
+```csharp
+app.MapBlazorImage("/blazor/images");
+```
+
+##### Configuration
+
+Customize BlazorImage to fit your specific needs by providing configuration options during service registration:
+
+```csharp
+builder.Services.AddBlazorImage(options =>
+{
+    // Default quality for processed images (15-100). Default Value = 75
+    options.DefaultQuality = 80;
+
+    // Default file format for processed images (e.g., "webp", "jpeg"). Default is "webp"
+    options.DefaultFileFormat = FileFormat.webp;
+
+    // Path for storing processed images. Default is "_blazor"
+    options.Dir = "_output";
+
+    // Array of sizes for image configuration. Default [480, 640, 768, 1024, 1280, 1536] sizes
+    options.ConfigSizes = new int[] { 640, 1024, 1280 };
+
+    // Aspect ratio width for images. Default is 1.0
+    options.AspectWidth = 1.0;
+
+    // Aspect ratio height for images. Default is 1.0
+    options.AspectHeight = 1.0;
+
+    // Absolute expiration time relative to now for cached images. Default is 720 hours (30 days).
+    options.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(720);
+
+    // Sliding expiration time for cached images. Default is null.
+    options.SlidingExpiration = null;
+});
+```
+
+#### Usage in Your Components
+
+Now you can start using the `Image` and `Picture` components in your Blazor pages and components.
+
+##### Add Script and CSS
+
+In your `App.razor` file, add the following script and link within the `<head>` or `<body>`:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Your Blazor App</title>
+    <base href="/" />
+    <link rel="stylesheet" href="css/app.css" />
+    <link rel="stylesheet" href="YourProjectName.styles.css" />
+    <link rel="stylesheet" href="_content/BlazorImage/BlazorImage.min.css" /> </head>
+<body>
+    <Routes />
+    <script src="_framework/blazor.web.js"></script>
+    <script src="_content/BlazorImage/BlazorImage.min.js"></script> </body>
+</html>
+```
+
+**Note:** Replace `YourProjectName` with the actual name of your Blazor project.
+
+##### Using the `Image` Component
+
+The `Image` component is the primary way to display optimized images. Here's an example:
+
+```html
+<Image Src="images/my-image.jpg"
+       Alt="A beautiful landscape"
+       Width="800"
+       Height="600"
+       LazyLoading="true"
+       Title="Landscape View"
+       CssClass="rounded-image"
+       WrapperClass="image-container"
+       Style="border: 1px solid #eee;"
+       WrapperStyle="margin-bottom: 20px;"
+       Quality="75"
+       Format="FileFormat.webp"
+       Sizes="(max-width: 768px) 100vw, 800px"
+       EnableDeveloperMode="true" />
+```
+
+##### Using the `Picture` Component
+
+For more advanced scenarios with multiple image sources (e.g., for different breakpoints or image formats), you can use the `Picture` component:
+
+```html
+<Picture Src="images/main-image.jpg"
+         Alt="Product Showcase"
+         Width="1200"
+         Height="900"
+         LazyLoading="true"
+         Title="Our Latest Product"
+         CssClass="product-image"
+         WrapperClass="product-wrapper"
+         Style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);"
+         WrapperStyle="text-align: center;"
+         Quality="85"
+         Format="FileFormat.avif"
+         Sizes="(max-width: 600px) 100vw, (max-width: 1200px) 80vw, 1200px"
+         CaptionClass="image-caption"
+         Caption="Introducing our revolutionary product!"
+         EnableDeveloperMode="false" />
+```
+
+### Benefits of Embracing BlazorImage
+
+By integrating BlazorImage into your Blazor applications, you can expect:
+
+* **Improved Website Performance:** Smaller image sizes and lazy loading lead to faster page load times.
+* **Enhanced User Experience:** Faster loading times result in happier and more engaged users.
+* **Better SEO Rankings:** Page speed is a significant factor in search engine optimization.
+* **Simplified Development Workflow:** Automate image optimization and focus on building your application's core features.
+* **Modern Image Format Support:** Leverage the benefits of next-generation image formats like WebP and AVIF.
+
+### Limitations to Keep in Mind
+
+As BlazorImage is a new library, it's important to be aware of its current limitations:
+
+* BlazorImage is still in its early stages and may have some limitations or areas for improvement.
+* Currently, it only supports **local images**. Optimization of remote images is not yet available.
+* It requires **.NET 9.0 or higher**.
+
+### Conclusion: Optimize Your Blazor Images Today!
+
+BlazorImage offers a powerful and convenient solution for optimizing images in your Blazor applications. Its ease of use, comprehensive feature set, and focus on performance make it an invaluable tool for any Blazor developer looking to deliver fast and visually appealing web experiences. Give BlazorImage a try and witness the difference it can make in your application's performance!
+
+### License
+
+BlazorImage is licensed under the MIT License.
