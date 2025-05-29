@@ -1,6 +1,6 @@
 # My Blog
 
-Welcome to my personal blog repository! This is where I share my thoughts, experiences, and ideas on various topics.
+Welcome to my personal blog repository!
 
 ## Blog Posts
 
@@ -8,7 +8,7 @@ Here is a list of my blog posts:
 
 1. [**Supercharge Your Blazor App: Effortless Image Optimization with BlazorImage**](https://saifsaidi.vercel.app/blog/blazor-image-optimization)
 
-   In this article, we will delve into how to optimize images in Blazor applications effortlessly using the BlazorImage library. We will explore the importance of image optimization for Blazor apps and introduce BlazorImage as a powerful solution. We will cover its key features, including automatic optimization, support for multiple formats like WebP and AVIF, built-in lazy loading, and responsive image handling. Additionally, we will explain how to install and set up BlazorImage in your Blazor project, configure its services, and demonstrate its usage with practical examples of the `Image` and `Picture` components. Finally, we will highlight the benefits of using BlazorImage to improve your Blazor application's performance and user experience.
+   In this article, we will delve into how to optimize images in Blazor applications effortlessly using the BlazorImage library. We will explore the importance of image optimization for Blazor apps and introduce BlazorImage as a powerful solution. We will cover its key features, including automatic optimization, support for multiple formats like WebP and AVIF, built-in lazy loading, and responsive image handling. Additionally, we will explain how to install and set up BlazorImage in your Blazor project, configure its services, and demonstrate its usage with practical examples of the `Image` component. Finally, we will highlight the benefits of using BlazorImage to improve your Blazor application's performance and user experience.
 
 
 2. [**A Comprehensive Guide to Code Performance Analysis in .NET using BenchmarkDotNet**](https://saifsaidi.vercel.app/blog/dotnet-code-performance-analysis-benchmarkdotnet)
@@ -30,8 +30,7 @@ Here is a list of my blog posts in arabic:
 
 1. [**عزّز تطبيق Blazor الخاص بك: تحسين سهل للصور باستخدام BlazorImage**](https://saifsaidi.vercel.app/blog/blazor-image-optimization?lang=ar)
 
-   في هذه المقالة، سنتعمق في كيفية تحسين الصور في تطبيقات Blazor بسهولة باستخدام مكتبة BlazorImage. سنستكشف أهمية تحسين الصور لتطبيقات Blazor ونقدم BlazorImage كحل قوي. سنغطي ميزاته الرئيسية، بما في ذلك التحسين التلقائي، ودعم تنسيقات متعددة مثل WebP و AVIF، والتحميل الكسول المدمج، ومعالجة الصور المستجيبة. بالإضافة إلى ذلك، سنشرح كيفية تثبيت وإعداد BlazorImage في مشروع Blazor الخاص بك، وتكوين خدماته، وعرض استخدامه بأمثلة عملية لمكوني `Image` و `Picture`. أخيرًا، سنسلط الضوء على فوائد استخدام BlazorImage لتحسين أداء تطبيق Blazor الخاص بك وتجربة المستخدم.
-
+   في هذه المقالة، سنتعمق في كيفية تحسين الصور في تطبيقات Blazor بسهولة باستخدام مكتبة BlazorImage. سنستكشف أهمية تحسين الصور لتطبيقات Blazor ونقدم BlazorImage كحل قوي. سنغطي ميزاته الرئيسية، بما في ذلك التحسين التلقائي، ودعم تنسيقات متعددة مثل WebP و AVIF، والتحميل الكسول المدمج، ومعالجة الصور المتجاوبة. بالإضافة إلى ذلك، سنشرح كيفية تثبيت وإعداد BlazorImage في مشروع Blazor الخاص بك، وتكوين خدماته، وتوضيح استخدامه بأمثلة عملية لمكون Image. أخيرًا، سنسلط الضوء على فوائد استخدام BlazorImage لتحسين أداء تطبيق Blazor الخاص بك وتجربة المستخدم.
 
 
 
