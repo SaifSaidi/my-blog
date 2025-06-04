@@ -6,21 +6,23 @@ Welcome to my personal blog repository!
 
 Here is a list of my blog posts:
 
-1. [**Supercharge Your Blazor App: Effortless Image Optimization with BlazorImage**](https://saifsaidi.vercel.app/blog/blazor-image-optimization)
+1. [**Options Pattern in C#**](https://saifsaidi.vercel.app/blog/options-pattern-in-csharp)
+
+     The Options Pattern in C# is a design approach that allows you to bind configuration settings to strongly typed classes, making it easier to manage application settings in ASP.NET Core applications. This pattern enhances code organization, supports dependency injection, and enables validation of configuration values.
+
+2. [**Supercharge Your Blazor App: Effortless Image Optimization with BlazorImage**](https://saifsaidi.vercel.app/blog/blazor-image-optimization)
 
    In this article, we will delve into how to optimize images in Blazor applications effortlessly using the BlazorImage library. We will explore the importance of image optimization for Blazor apps and introduce BlazorImage as a powerful solution. We will cover its key features, including automatic optimization, support for multiple formats like WebP and AVIF, built-in lazy loading, and responsive image handling. Additionally, we will explain how to install and set up BlazorImage in your Blazor project, configure its services, and demonstrate its usage with practical examples of the `Image` component. Finally, we will highlight the benefits of using BlazorImage to improve your Blazor application's performance and user experience.
 
 
-2. [**A Comprehensive Guide to Code Performance Analysis in .NET using BenchmarkDotNet**](https://saifsaidi.vercel.app/blog/dotnet-code-performance-analysis-benchmarkdotnet)
+3. [**A Comprehensive Guide to Code Performance Analysis in .NET using BenchmarkDotNet**](https://saifsaidi.vercel.app/blog/dotnet-code-performance-analysis-benchmarkdotnet)
 
    In this article, we will delve into how to analyze code performance in .NET applications using the powerful BenchmarkDotNet library. We will explore the importance of performance analysis, why BenchmarkDotNet is an excellent tool for this purpose. We will delve into statistical analysis, comparing different methods, and understanding execution time. Additionally, we will explain how to use BenchmarkDotNet step by step with practical examples, review the library's available attributes, and provide tips for getting the most out of the performance analysis process.
 
 
-3. [**MDX Syntax: This document covers various formatting options available in MDX.**](https://saifsaidi.vercel.app/blog/hello-mdx)
+4. [**MDX Syntax: This document covers various formatting options available in MDX.**](https://saifsaidi.vercel.app/blog/hello-mdx)
 
    This document covers various formatting options available in MDX.
-
- 
 
 ---
 

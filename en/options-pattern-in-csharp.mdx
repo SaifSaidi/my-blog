@@ -1,0 +1,108 @@
+---
+title: "Options Pattern in C#"
+publishedAt: "2025-6-3"
+summary: "Learn how to use the Options Pattern in ASP.NET Core to manage application settings effectively."
+about: "The Options Pattern in C# is a design approach that allows you to bind configuration settings to strongly typed classes, making it easier to manage application settings in ASP.NET Core applications. This pattern enhances code organization, supports dependency injection, and enables validation of configuration values."
+tags: 
+    - "C#"
+    - "ASP.NET Core"
+    - "Options Pattern"
+github: "https://github.com/SaifSaidi/my-blog/blob/main/en/options-pattern-in-csharp.mdx"
+---
+
+## What Is the Options Pattern?
+
+The **Options Pattern** is a design approach in ASP.NET Core that allows you to:
+
+- Bind configuration settings to **POCOs** (Plain Old CLR Objects)
+- Access these settings using **dependency injection**
+- Validate and monitor changes to configuration values
+
+This leads to **clean, modular, and testable** configuration code.
+
+---
+
+## Setting Up the Options Pattern
+
+Let's walk through a real example to see how it works.
+
+> **GitHub Repo Example:** [SaifSaidi/OptionsPatternExample](https://github.com/SaifSaidi/OptionsPatternExample)
+
+### Step 1: Add Settings in `appsettings.json`
+
+```json
+{
+  "MyAppSettings": {
+    "ApplicationName": "My App",
+    "Version": "1.0.0"
+  }
+}
+```
+
+### Step 2: Create a `POCO` to Represent the Settings
+
+```csharp
+public class MyAppSettings
+{
+    public string ApplicationName { get; set; }
+    public string Version { get; set; }
+}
+```
+### Step 3: Register the Options in `Program.cs`
+
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+
+// Bind the settings section to the POCO
+builder.Services.Configure<MyAppSettings>(
+    builder.Configuration.GetSection("MyAppSettings"));
+
+var app = builder.Build();
+```
+### Step 4: Inject and Use the Options
+
+```csharp
+ [ApiController]
+ public class HomeController : ControllerBase
+ {
+     private readonly MyAppSettings _settings;
+
+     public HomeController(IOptions<MyAppSettings> options)
+     {
+         _settings = options.Value;
+     }
+
+     [HttpGet]
+     [Route("api/home/settings")]
+     public IActionResult GetSettings()
+     {
+         return Ok(new
+         { 
+             _settings.ApplicationName,
+             _settings.Version
+         });
+     }
+}
+```
+
+### Step 5: Validate Options (Optional)
+```csharp
+builder.Services.AddOptions<MyAppSettings>()
+    .Bind(builder.Configuration.GetSection("MyAppSettings"))
+    .Validate(settings => !string.IsNullOrEmpty(settings.ApplicationName), "App name must be set")
+    .ValidateOnStart();
+```
+
+## Benefits of Using the Options Pattern
+
+- **Strongly Typed**: You get compile-time checking and IntelliSense support.
+- **Centralized Configuration**: All settings are in one place, making it easier to manage.
+- **Dependency Injection**: Options can be injected into any service or controller.
+- **Validation**: You can easily validate settings to ensure they meet your requirements.
+
+
+## Conclusion
+
+The Options Pattern in ASP.NET Core provides a powerful way to manage application settings.
+By binding configuration to strongly typed classes, you can create clean, maintainable, and testable code.
+This pattern not only enhances the organization of your configuration but also leverages the benefits of dependency injection and validation, making your application more robust and easier to work with.
