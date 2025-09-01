@@ -1,0 +1,136 @@
+---
+title: "Disabling Cookie Login Redirects for Known API Endpoints in ASP.NET Core (Pre-.NET 10)"
+publishedAt: "2025-09-02"
+image: "https://raw.githubusercontent.com/SaifSaidi/my-blog/refs/heads/main/res/images/aspnet-cookie-login-redirects.jpg"
+summary: "Learn how to stop cookie authentication from redirecting unauthenticated API requests to login pages in ASP.NET Core (6–8) by returning proper 401/403 responses instead."
+about: "When using cookie authentication in ASP.NET Core, APIs may break because unauthenticated requests are redirected to login or access-denied pages instead of returning HTTP status codes. This guide explains the previous behavior, what’s changing in .NET 10, and how to implement a workaround today by customizing cookie authentication events and using endpoint metadata."
+tags:
+  - "ASP.NET Core"
+  - "Authentication"
+  - "Cookies"
+  - "API Security"
+  - ".NET 10"
+github: "https://github.com/SaifSaidi/my-blog/blob/main/en/aspnet-cookie-login-redirects.mdx"
+---
+
+## Disabling Cookie Login Redirects for Known API Endpoints in ASP.NET Core (Pre-.NET 10)
+
+In current versions of **ASP.NET Core (.NET 6 / 7 / 8)**, when using **Cookie Authentication** to protect APIs, unauthenticated or unauthorized requests are not always handled in a way that fits API scenarios. This behavior changes officially starting with **.NET 10**.  
+
+---
+
+## Previous Behavior (before .NET 10)
+
+- By default, the **Cookie Authentication Handler**:
+  - Redirected unauthenticated/unauthorized requests to the **login** or **access-denied** paths.  
+  - Exception: **XHR (Ajax) requests** returned **401/403** instead of being redirected.  
+
+---
+
+## New Behavior (from .NET 10 onwards)
+
+- Unauthenticated or unauthorized requests made to **known API endpoints** now return:  
+  - **401 Unauthorized**  
+  - **403 Forbidden**  
+  instead of redirecting to login or access-denied pages.  
+- **XHR/Ajax requests** always result in 401/403, regardless of the endpoint.  
+
+---
+
+## Why This Matters
+
+- APIs expect proper **HTTP status codes (401/403)**.  
+- Redirecting to HTML pages can break:  
+  - **SPA clients** (React, Angular, Blazor).  
+  - **Mobile applications**, which expect JSON or clear status codes.  
+
+---
+
+## Pre-.NET 10 Solution: Customizing Events
+
+Before this new behavior becomes the default in .NET 10, you can customize **Cookie Authentication Events** to return the correct status codes for API requests.  
+This solution relies on **endpoint metadata** to detect API controllers.  
+
+### Example Code
+
+```csharp
+builder.Services.AddIdentityCookies(o =>
+{
+    o.ApplicationCookie.Configure(options =>
+    {
+        options.Cookie.Name = "CookieName";
+        options.LoginPath = "/Account/Login";
+        options.AccessDeniedPath = "/Account/AccessDenied";
+        ...
+
+
+        options.Events.OnRedirectToLogin = context =>
+        {
+            if (IsApiControllerEndpoint(context))
+            {
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            }
+            else
+            {
+                context.Response.Redirect(context.RedirectUri);
+            }
+            return Task.CompletedTask;
+        };
+
+        options.Events.OnRedirectToAccessDenied = context =>
+        {
+            if (IsApiControllerEndpoint(context))
+            {
+                context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            }
+            else
+            {
+                context.Response.Redirect(context.RedirectUri);
+            }
+            return Task.CompletedTask;
+        };
+    });
+});
+
+private static bool IsApiControllerEndpoint(RedirectContext<CookieAuthenticationOptions> context)
+{
+    var endpoint = context.HttpContext.GetEndpoint();
+    if (endpoint == null)
+        return false;
+
+    // Detect API endpoints via [ApiController] attribute
+    return endpoint.Metadata.GetMetadata<ApiControllerAttribute>() != null;
+}
+````
+
+---
+
+## How It Works
+
+* Requests to **API controllers** (`[ApiController]`) → return **401 or 403**.
+* Requests to **regular MVC or Razor pages** → continue redirecting to login/access-denied pages.
+* Cookie security features (HttpOnly, Secure, SameSite, Sliding Expiration) remain active.
+
+---
+
+## Additional Notes
+
+* `[ApiController]` detection works for MVC and Web API controllers.
+* **Minimal APIs** and **SignalR hubs** may need extra handling using:
+
+  * `IApiEndpointMetadata`
+  * or `TypedResults`
+* Testing is essential to confirm:
+
+  * API endpoints return **401/403**.
+  * MVC/Razor pages still redirect.
+  * SPA or mobile clients handle the responses properly.
+
+---
+
+## Conclusion
+
+* **Previous behavior (before .NET 10):** all requests were redirected to login/access-denied, except XHR which returned 401/403.
+* **New behavior (in .NET 10):** known API endpoints return 401/403 instead of redirects.
+* **Workaround (in .NET 6–8):** customize cookie authentication events with endpoint metadata to get the new behavior early.
+ 
