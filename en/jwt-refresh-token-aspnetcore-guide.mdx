@@ -1,0 +1,414 @@
+---
+title: "JWT and Refresh Token Authentication in ASP.NET Core"
+publishedAt: "2025-09-04"
+image: "https://raw.githubusercontent.com/SaifSaidi/my-blog/refs/heads/main/res/images/jwt.png"
+summary: "Learn how to secure your ASP.NET Core APIs using JWT and Refresh Tokens. Complete guide with code from AspCoreWithJWT, best practices, and Postman usage."
+about: "Step-by-step guide to implementing JWT and Refresh Token authentication in ASP.NET Core. Includes configuration, code examples, Postman usage, and best practices."
+tags:
+  - "JWT"
+  - "Refresh Token"
+  - "Authentication"
+  - "Authorization"
+  - "Postman"
+github: "https://github.com/SaifSaidi/my-blog/blob/main/en/jwt-refresh-token-aspnetcore-guide.mdx"
+---
+
+## JWT and Refresh Token Authentication in ASP.NET Core
+
+Securing APIs is critical in modern web development.  
+A proven approach is to combine **JWT (JSON Web Token)** with **Refresh Tokens**.  
+This balances **security** (short-lived tokens), **scalability** (stateless APIs), and **user experience** (refresh without re-login).  
+
+In this guide, we will:  
+- Understand JWT & Refresh Tokens  
+- Implement them in **ASP.NET Core** (using [AspCoreWithJWT](https://github.com/SaifSaidi/JWT_RefreshToken))  
+- Explain the code step by step (with context)  
+- Test the full flow in **Postman**  
+- Share best practices & common pitfalls  
+
+---
+
+## 🔑 What is a JWT?
+
+A **JSON Web Token (JWT)** is a compact, URL-safe way to transfer claims between two parties.  
+It is widely used for authentication & authorization in APIs.  
+
+### Structure
+
+A JWT is made of three parts:
+
+1. **Header** → algorithm & token type (e.g., `HS256`)  
+2. **Payload** → claims about the user (Id, role, email, expiration)  
+3. **Signature** → ensures the token has not been tampered with  
+
+Example:  
+```
+
+xxxxx.yyyyy.zzzzz
+
+````
+
+---
+
+## 🔄 What is a Refresh Token?
+
+Unlike access tokens (short-lived), a **Refresh Token** is long-lived and used to obtain new JWTs.  
+
+**Benefits:**  
+- 🔒 Improved security: Access tokens expire quickly, reducing impact if stolen.  
+- 😀 Better UX: Users stay logged in without re-entering credentials.  
+- ♻️ Supports rotation: Each refresh replaces the old one, reducing replay attacks.  
+
+**Flow:**  
+1. User logs in → receives `JWT + Refresh Token`.  
+2. JWT expires → client sends refresh token to obtain a new JWT.  
+3. Server can revoke or rotate refresh tokens for security.  
+
+---
+
+## 🛠 Implementation in ASP.NET Core
+
+We’ll now implement the full authentication system.  
+
+---
+
+### 1. Configuration (`appsettings.json`)
+
+```json
+"Jwt": {
+  "Key": "SuperSecretKey123456789",
+  "Issuer": "AspCoreWithJWT",
+  "Audience": "AspCoreWithJWTUsers",
+  "TokenExpirationMinutes": 15,
+  "RefreshTokenExpirationDays": 7
+}
+````
+
+**What it does:**
+Holds security settings: key, issuer, audience, and token lifetimes.
+
+**Why it’s important:**
+Centralizes configuration and avoids hardcoding sensitive values.
+
+**Where it’s used:**
+Read by `Program.cs` and `TokenService` for signing and validating tokens.
+
+---
+
+### 2. Authentication Setup (`Program.cs`)
+
+```csharp
+var jwtKey = builder.Configuration["Jwt:Key"];
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey!)),
+            ClockSkew = TimeSpan.Zero
+        };
+    });
+```
+
+**What it does:**
+Adds JWT authentication middleware and sets validation rules.
+
+**Why it’s important:**
+Ensures only trusted, non-expired tokens are accepted.
+
+**Where it’s used:**
+Applied globally — required for any `[Authorize]` endpoints.
+
+---
+
+### 3. TokenService
+
+```csharp
+public class TokenService(IConfiguration configuration) : ITokenService
+{
+    public string GenerateJwtToken(User user)
+    {
+        var key = Encoding.ASCII.GetBytes(configuration["Jwt:Key"]!);
+        var claims = new List<Claim>
+        {
+            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new(ClaimTypes.Name, user.UserName),
+            new(ClaimTypes.Email, user.Email),
+            new(ClaimTypes.Role, user.Role)
+        };
+
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Subject = new ClaimsIdentity(claims),
+            Expires = DateTime.UtcNow.AddMinutes(double.Parse(configuration["Jwt:TokenExpirationMinutes"]!)),
+            Issuer = configuration["Jwt:Issuer"],
+            Audience = configuration["Jwt:Audience"],
+            SigningCredentials = new SigningCredentials(
+                new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256)
+        };
+
+        return new JwtSecurityTokenHandler().WriteToken(
+            new JwtSecurityTokenHandler().CreateToken(tokenDescriptor)
+        );
+    }
+
+    public RefreshToken GenerateRefreshToken(string ipAddress)
+    {
+        using var rng = RandomNumberGenerator.Create();
+        var bytes = new byte[64];
+        rng.GetBytes(bytes);
+
+        return new RefreshToken
+        {
+            Token = Convert.ToBase64String(bytes),
+            Expires = DateTime.UtcNow.AddDays(double.Parse(configuration["Jwt:RefreshTokenExpirationDays"]!)),
+            Created = DateTime.UtcNow,
+            CreatedByIp = ipAddress
+        };
+    }
+}
+```
+
+**What it does:**
+
+* `GenerateJwtToken` → creates a JWT containing user claims.
+* `GenerateRefreshToken` → creates a secure random token for refresh flow.
+
+**Why it’s important:**
+This is the **core of authentication**: JWTs prove identity; refresh tokens extend sessions securely.
+
+**Where it’s used:**
+Called by `UserService` when authenticating or refreshing tokens.
+
+---
+
+### 4. RefreshToken Model
+
+```csharp
+public class RefreshToken
+{
+    public int Id { get; set; }
+    public string Token { get; set; } = string.Empty;
+    public DateTime Expires { get; set; }
+    public DateTime Created { get; set; }
+    public string CreatedByIp { get; set; } = string.Empty;
+    public DateTime? Revoked { get; set; }
+    public string? RevokedByIp { get; set; }
+    public string? ReplacedByToken { get; set; }
+
+    public bool IsExpired => DateTime.UtcNow >= Expires;
+    public bool IsRevoked => Revoked != null;
+    public bool IsActive => !IsRevoked && !IsExpired;
+}
+```
+
+**What it does:**
+Represents a refresh token entity with lifecycle tracking (active, expired, revoked).
+
+**Why it’s important:**
+Allows safe token rotation, detection of compromised tokens, and revocation when necessary.
+
+**Where it’s used:**
+Stored in DB for each user (`User.RefreshTokens`).
+
+---
+
+### 5. UserService
+
+```csharp
+public class UserService : IUserService
+{
+    private readonly ApplicationDbContext _context;
+    private readonly ITokenService _tokenService;
+
+    public UserService(ApplicationDbContext context, ITokenService tokenService)
+    {
+        _context = context;
+        _tokenService = tokenService;
+    }
+
+    public async Task<AuthResponse?> Authenticate(AuthRequest model, string ipAddress)
+    {
+        var user = await _context.Users.SingleOrDefaultAsync(x => x.UserName == model.Username);
+        if (user == null || !BCrypt.Net.BCrypt.Verify(model.Password, user.PasswordHash))
+            return null;
+
+        var jwtToken = _tokenService.GenerateJwtToken(user);
+        var refreshToken = _tokenService.GenerateRefreshToken(ipAddress);
+
+        user.RefreshTokens.Add(refreshToken);
+        _context.Update(user);
+        await _context.SaveChangesAsync();
+
+        return new AuthResponse(user, jwtToken, refreshToken.Token);
+    }
+
+    public async Task<AuthResponse?> RefreshToken(string token, string ipAddress)
+    {
+        var user = await _context.Users.Include(u => u.RefreshTokens)
+                                       .SingleOrDefaultAsync(u => u.RefreshTokens.Any(t => t.Token == token));
+
+        var refreshToken = user?.RefreshTokens.SingleOrDefault(rt => rt.Token == token);
+        if (refreshToken == null || !refreshToken.IsActive)
+            return null;
+
+        var newRefreshToken = _tokenService.GenerateRefreshToken(ipAddress);
+        refreshToken.Revoked = DateTime.UtcNow;
+        refreshToken.RevokedByIp = ipAddress;
+        refreshToken.ReplacedByToken = newRefreshToken.Token;
+
+        user!.RefreshTokens.Add(newRefreshToken);
+
+        _context.Update(user);
+        await _context.SaveChangesAsync();
+
+        var jwtToken = _tokenService.GenerateJwtToken(user);
+        return new AuthResponse(user, jwtToken, newRefreshToken.Token);
+    }
+}
+```
+
+**What it does:**
+
+* `Authenticate` → validates credentials, issues JWT + refresh token.
+* `RefreshToken` → revokes old refresh token, issues new pair (JWT + refresh).
+
+**Why it’s important:**
+Implements the **refresh flow** that keeps sessions alive securely while preventing reuse of stolen tokens.
+
+**Where it’s used:**
+Called by `/api/auth/login` and `/api/auth/refresh-token`.
+
+---
+
+### 6. Securing Controllers
+
+```csharp
+[Authorize]
+[ApiController]
+[Route("api/[controller]")]
+public class UsersController : ControllerBase
+{
+    [Authorize(Roles = "Admin")]
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        // Admin-only endpoint
+    }
+}
+```
+
+**What it does:**
+Requires JWTs for access and restricts roles where needed.
+
+**Why it’s important:**
+Protects sensitive endpoints from anonymous users.
+
+**Where it’s used:**
+Controllers that manage user data, admin dashboards, etc.
+
+---
+
+## 🧪 Using Postman
+
+Now let’s test the flow step by step.
+
+### 1. Register a User
+
+```http
+POST https://localhost:7240/api/users/register
+Content-Type: application/json
+
+{
+  "username": "saif",
+  "email": "saif@example.com",
+  "password": "P@ssword123",
+  "role": 1 // admin 0, user 1 
+}
+```
+
+### 2. Login (get JWT + Refresh Token)
+
+```http
+POST https://localhost:7240/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "saif",
+  "password": "P@ssword123"
+}
+```
+
+**Response:**
+
+```json
+{
+  "id": 1,
+  "username": "saif",
+  "email": "saif@example.com",
+  "role": "User",
+  "jwtToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "0HL1R+e2fVB6+Z9gQeZT+KYe..."
+}
+```
+
+### 3. Call Protected Endpoint
+
+```http
+POST https://localhost:7240/api/users/profile
+Authorization: Bearer <jwtToken>
+```
+
+### 4. Refresh Token
+
+```http
+POST https://localhost:7240/api/auth/refresh-token
+Content-Type: application/json
+
+"0HL1R+e2fVB6+Z9gQeZT+KYe..."
+```
+
+**Response:**
+
+```json
+{
+  "id": 1,
+  "username": "saif",
+  "email": "saif@example.com",
+  "role": "User",
+  "jwtToken": "newJwtHere...",
+  "refreshToken": "newRefreshTokenHere..."
+}
+```
+
+---
+
+## ✅ Best Practices
+
+* Use **short-lived JWTs** (5–15 min).
+* Rotate refresh tokens on each use.
+* Store refresh tokens securely (hashed in DB).
+* Prefer **HttpOnly cookies** over localStorage.
+* Always enforce **HTTPS**.
+
+---
+
+## ⚠️ Common Pitfalls
+
+* ❌ Storing JWT in localStorage → XSS risk.
+* ❌ Long-lived access tokens → higher risk if stolen.
+* ❌ No revocation logic → refresh tokens never expire.
+* ❌ Using default clock skew → expired tokens may remain valid.
+
+---
+
+## 📚 References
+
+* [AspCoreWithJWT GitHub Repository](https://github.com/SaifSaidi/JWT_RefreshToken)
